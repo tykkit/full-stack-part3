@@ -1,5 +1,18 @@
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
+
+app.use(express.json())
+
+morgan.token('content', function getContent (request) {
+    if (request.method === 'POST') {
+        return JSON.stringify(request.body)
+    } else {
+        return " "
+    }
+})
+
+app.use(morgan(`:method :url :status - :response-time ms :content`))
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -31,6 +44,13 @@ let phonebook = [
     }    
 ]
 
+const generateId = () => {
+    const newId = phonebook.length > 0
+        ? Math.random(phonebook.length + 100000)
+        : 0
+    return String(newId)
+}
+
 app.get('/', (request, response) => {
     response.send('<h1> Hello World! </h1>')
 })
@@ -44,6 +64,51 @@ app.get('/info', (request, response) => {
         `<div> Phonebook has info for ${phonebook.length} people` + 
         `<div> ${dateString} </div>`
     )
+})
+
+app.get('/api/phonebook/:id', (request, response) => {
+    const id = request.params.id
+    const number = phonebook.find(person => person.id === id)
+    if (number) {
+        response.json(number)
+    } else {
+        response.status(404).end()
+    }
+})
+
+app.post('/api/phonebook', (request, response) => {
+    const body = request.body
+
+    if (!body.name || !body.number) {
+        return response.status(400).json({
+            error: 'name or number missing'
+        })
+    }
+
+    const isAdded = phonebook.find(person => person.name === body.name || person.number === body.number)
+
+    if (!isAdded) {
+        const number = {
+            id: generateId(),
+            name: body.name,
+            number: body.number,
+        }
+
+        phonebook = phonebook.concat(number)
+
+        response.json(number)
+    } else {
+        response.status(400).json({
+            error: 'name and number must be unique'
+        })
+    }
+})
+
+app.delete('/api/phonebook/:id', (request, response) => {
+    const id = request.params.id
+    phonebook = phonebook.filter(number => number.id !== id)
+
+    response.status(204).end()
 })
 
 const PORT = 3001
