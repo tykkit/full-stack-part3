@@ -1,8 +1,11 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cors = require('cors')
+
 
 app.use(express.json())
+app.use(cors())
 
 morgan.token('content', function getContent (request) {
     if (request.method === 'POST') {
@@ -106,12 +109,19 @@ app.post('/api/phonebook', (request, response) => {
 
 app.delete('/api/phonebook/:id', (request, response) => {
     const id = request.params.id
+    const deletedPerson = {
+        id: id,
+        name: request.body.name,
+        number: request.body.number
+    }
     phonebook = phonebook.filter(number => number.id !== id)
 
-    response.status(204).end()
+    response.status(204).json({
+        deletedPerson
+    })
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
