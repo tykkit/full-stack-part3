@@ -23,13 +23,13 @@ const errorHandler = (error, request, response, next) => {
     console.error(error.message)
   
     if (error.name === 'CastError') {
-      return response.status(400).send({ error: 'malformatted id' })
+        return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message })
     }
   
     next(error)
   }
-  
-app.use(errorHandler)
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -78,7 +78,7 @@ app.get('/api/phonebook', (request, response) => {
     })
 })
 
-app.get('/info', (request, response) => {
+app.get('/info', (request, response, next) => {
     Number.find({}).then(numbers => {
         response.send(
             `<div> Phonebook has info for ${numbers.length} people` + 
@@ -88,7 +88,7 @@ app.get('/info', (request, response) => {
     .catch(error => next(error))
 })
 
-app.get('/api/phonebook/:id', (request, response) => {
+app.get('/api/phonebook/:id', (request, response, next) => {
     const id = request.params.id
     Number.findById(id)
         .then(returnedNumber => {
@@ -147,6 +147,8 @@ app.delete('/api/phonebook/:id', (request, response, next) => {
         })
         .catch(error => next(error))
 })
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
