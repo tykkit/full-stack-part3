@@ -14,20 +14,20 @@ mongoose.connect(url)
   })
 
 const numberSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        minlength: 3,
-    },
-    number: {
-        type: String,
-        minlength: 8,
-        validate: {
-            validator: function(v) {
-                return /^\d{2,3}-\d{5,}$/.test(v)
-            }, 
-            message: props => `${props.value} is not in required number format`
-        }
-    },
+  name: {
+    type: String,
+    minlength: 3,
+  },
+  number: {
+    type: String,
+    minlength: 8,
+    validate: {
+      validator: function (v) {
+        return /^\d{2,3}-\d{5,}$/.test(v)
+      },
+      message: props => `${props.value} is not in required number format`
+    }
+  },
 })
 
 numberSchema.set('toJSON', {
